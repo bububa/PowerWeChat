@@ -535,7 +535,7 @@ func (client *BaseClient) CheckTokenNeedRefresh(req *http.Request, rs *http.Resp
 			client.Token.Refresh()
 
 			// clone 一个request
-			fmt.Printf("get token:%+v\n", client.Token)
+			// fmt.Printf("get token:%+v\n", client.Token)
 			token, err := client.Token.GetToken(false)
 			q := req.URL.Query()
 			q.Set(client.Token.TokenKey, token.AccessToken)
