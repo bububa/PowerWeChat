@@ -247,6 +247,9 @@ func (app *OpenWork) ProviderClient(corpID string, permanentCode string, externC
 		File:  (*log)["file"].(string),
 		ENV:   (*log)["env"].(string),
 	}
+	if driver, ok := (*log)["driver"].(contract.LoggerInterface); ok {
+		workLog.Driver = driver
+	}
 	debug := config.GetBool("debug", false)
 	httpDebug := config.GetBool("http_debug", false)
 	if externConfig != nil {
@@ -261,6 +264,9 @@ func (app *OpenWork) ProviderClient(corpID string, permanentCode string, externC
 		}
 		if externConfig.OAuth.Callback != "" {
 			oauth.Callback = externConfig.OAuth.Callback
+		}
+		if driver, ok := externConfig.Log.Driver.(contract.LoggerInterface); ok {
+			workLog.Driver = driver
 		}
 		if externConfig.Log.File != "" {
 			workLog.File = externConfig.Log.File
@@ -311,6 +317,9 @@ func (app *OpenWork) ThirdpartyClient(corpID string, permanentCode string, exter
 		File:  (*log)["file"].(string),
 		ENV:   (*log)["env"].(string),
 	}
+	if driver, ok := (*log)["driver"].(contract.LoggerInterface); ok {
+		workLog.Driver = driver
+	}
 	debug := config.GetBool("debug", false)
 	httpDebug := config.GetBool("http_debug", false)
 	if externConfig != nil {
@@ -331,6 +340,9 @@ func (app *OpenWork) ThirdpartyClient(corpID string, permanentCode string, exter
 		}
 		if externConfig.Log.ENV != "" {
 			workLog.ENV = externConfig.Log.ENV
+		}
+		if driver, ok := externConfig.Log.Driver.(contract.LoggerInterface); ok {
+			workLog.Driver = driver
 		}
 		if externConfig.Log.Level != "" {
 			workLog.Level = externConfig.Log.Level
