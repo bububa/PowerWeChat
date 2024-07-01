@@ -336,12 +336,49 @@ func (guard *Guard) OverrideToCallbackType() {
 
 // switch event
 func (guard *Guard) toCallbackEvent(callbackHeader contract.EventInterface, buf []byte) (decryptMessage interface{}, err error) {
+	eventType := callbackHeader.GetEvent()
 
-	switch callbackHeader.GetEvent() {
+	switch eventType {
 
 	// event is change contact
 	case workModels.CALLBACK_EVENT_CHANGE_CONTACT:
 		decryptMessage, err = guard.toCallbackEventChangeType(callbackHeader, buf)
+		break
+
+	// event is change external contact
+	case workModels.CALLBACK_EVENT_CHANGE_EXTERNAL_CONTACT:
+		decryptMessage, err = guard.toCallbackEventChangeType(callbackHeader, buf)
+		break
+
+	// event is change external chat
+	case workModels.CALLBACK_EVENT_CHANGE_EXTERNAL_CHAT:
+		decryptMessage, err = guard.toCallbackEventChangeType(callbackHeader, buf)
+		break
+
+	// event is change external tag
+	case workModels.CALLBACK_EVENT_CHANGE_EXTERNAL_TAG:
+		switch callbackHeader.GetChangeType() {
+		case workModels.CALLBACK_EVENT_CHANGE_TYPE_CREATE:
+			decryptMsg := &workModels.EventExternalUserTagCreate{}
+			err = xml.Unmarshal(buf, decryptMsg)
+			decryptMessage = decryptMsg
+			break
+		case workModels.CALLBACK_EVENT_CHANGE_TYPE_UPDATE:
+			decryptMsg := &workModels.EventExternalUserTagUpdate{}
+			err = xml.Unmarshal(buf, decryptMsg)
+			decryptMessage = decryptMsg
+			break
+		case workModels.CALLBACK_EVENT_CHANGE_TYPE_DELETE:
+			decryptMsg := &workModels.EventExternalUserTagDelete{}
+			err = xml.Unmarshal(buf, decryptMsg)
+			decryptMessage = decryptMsg
+			break
+		case workModels.CALLBACK_EVENT_CHANGE_TYPE_SHUFFLE:
+			decryptMsg := &workModels.EventExternalUserTagDelete{}
+			err = xml.Unmarshal(buf, decryptMsg)
+			decryptMessage = decryptMsg
+			break
+		}
 		break
 
 	// events
@@ -448,7 +485,7 @@ func (guard *Guard) toCallbackEvent(callbackHeader contract.EventInterface, buf 
 		break
 
 	default:
-		return nil, errors.New("not found wechat event")
+		return nil, fmt.Errorf("not found wecom event: %s", eventType)
 	}
 
 	return decryptMessage, err
@@ -456,8 +493,8 @@ func (guard *Guard) toCallbackEvent(callbackHeader contract.EventInterface, buf 
 
 // switch event change type
 func (guard *Guard) toCallbackEventChangeType(callbackHeader contract.EventInterface, buf []byte) (decryptMessage interface{}, err error) {
-
-	switch callbackHeader.GetChangeType() {
+	changeType := callbackHeader.GetChangeType()
+	switch changeType {
 
 	// change type is for user event
 	case workModels.CALLBACK_EVENT_CHANGE_TYPE_CREATE_USER:
@@ -497,6 +534,55 @@ func (guard *Guard) toCallbackEventChangeType(callbackHeader contract.EventInter
 		decryptMessage = decryptMsg
 		break
 
+	// change type is for external contact event
+	case workModels.CALLBACK_EVENT_CHANGE_TYPE_ADD_EXTERNAL_CONTACT:
+		decryptMsg := &workModels.EventExternalUserAdd{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+
+	case workModels.CALLBACK_EVENT_CHANGE_TYPE_EDIT_EXTERNAL_CONTACT:
+		decryptMsg := &workModels.EventExternalUserEdit{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+
+	case workModels.CALLBACK_EVENT_CHANGE_TYPE_ADD_HALF_EXTERNAL_CONTACT:
+		decryptMsg := &workModels.EventExternalUserAddHalf{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+
+	case workModels.CALLBACK_EVENT_CHANGE_TYPE_DEL_EXTERNAL_CONTACT:
+		decryptMsg := &workModels.EventExternalUserDel{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+
+	case workModels.CALLBACK_EVENT_CHANGE_TYPE_DEL_FOLLOW_USER:
+		decryptMsg := &workModels.EventExternalUserDelFollowUser{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+
+	case workModels.CALLBACK_EVENT_CHANGE_TYPE_TRANSFER_FAIL:
+		decryptMsg := &workModels.EventExternalTransferFail{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+
+	// change type for event external chat
+	case workModels.CALLBACK_EVENT_UPDATE_DETAIL_ADD_MEMBER, workModels.CALLBACK_EVENT_UPDATE_DETAIL_DEL_MEMBER, workModels.CALLBACK_EVENT_UPDATE_DETAIL_CHANGE_OWNER, workModels.CALLBACK_EVENT_UPDATE_DETAIL_CHANGE_NAME, workModels.CALLBACK_EVENT_UPDATE_DETAIL_CHANGE_NOTICE:
+		decryptMsg := &workModels.EventExternalChatUpdate{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+	case workModels.CALLBACK_EVENT_CHANGE_TYPE_DISMISS:
+		decryptMsg := &workModels.EventExternalChatDismiss{}
+		err = xml.Unmarshal(buf, decryptMsg)
+		decryptMessage = decryptMsg
+		break
+
 	// change type is for tag event
 	case workModels.CALLBACK_EVENT_CHANGE_TYPE_UPDATE_TAG:
 		decryptMsg := &workModels.EventTagUpdate{}
@@ -505,7 +591,7 @@ func (guard *Guard) toCallbackEventChangeType(callbackHeader contract.EventInter
 		break
 
 	default:
-		return nil, errors.New("not found wechat event")
+		return nil, fmt.Errorf("not found wecom change event: %s", changeType)
 	}
 
 	return decryptMessage, err
